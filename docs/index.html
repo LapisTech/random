@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ja" style="font-size:20px;">
+<head>
+	<meta charset="utf-8">
+	<title>Random string generator</title>
+	<meta name="description" content="Generate random string.">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<link rel="apple-touch-icon" sizes="152x152" href="./apple-touch-icon-precomposed.png">
+	<style>
+:root { --sub-back: #cfcffb; }
+html { font-size: 5vmin; }
+body { display: flex; flex-direction: column; justify-content: center; margin: 0; padding: 0.5rem 0.5rem 5rem; }
+h1 { font-size: 2rem; text-align: center; }
+h2 { font-size: 1rem; text-align: center; margin: 1rem 0 0; }
+h3 { font-size: 1rem; }
+textarea, input { font-size: 1rem; }
+button { cursor: pointer; font-size: 1rem; }
+.tab { display: flex; }
+.tab > button { flex: 1; border: none; }
+.tab > button.selected, button:hover { background: var(--sub-back); }
+.tab > [data-type="size"]::before { content: 'Word count'; }
+.tab > [data-type="pattern"]::before { content: 'Pattern'; }
+.parameter { display: grid; grid-template-columns: calc(100% - 5rem) 5rem; }
+.parameter > input { display: none; }
+body[data-type="size"] #size, body[data-type="pattern"] #pattern { display: block; }
+#generate::before { content: 'Generate'; }
+.chars { display: flex; justify-content: center; gap: 0.5rem; flex-flow: wrap; }
+.chars > label { border: 0.1rem solid var(--sub-back); padding: 0 0.5rem 0 0; border-radius: 0.2rem; cursor: pointer; }
+.chars > label:has(:checked) { background: var(--sub-back); }
+label { user-select: none; }
+#github { display: block; text-align: center; margin: 2rem 0 0; padding: 1rem 0; border-top: 0.1rem solid var(--sub-back); }
+	</style>
+	<script>
+document.addEventListener('DOMContentLoaded', () => {
+	const ERROR_STR = '😫';
+
+	const set = ((textarea) => {
+		return (value) => {
+			textarea.value = value;
+		};
+	})(document.getElementById('output'));
+
+	function getCharFunc() {
+		return () => {
+			const chars = [...document.querySelectorAll('.chars input:checked')].map((input) => {
+				return input.parentElement.textContent;
+			});
+			if (chars.length <= 0) {
+				chars.push(ERROR_STR);
+			}
+			
+			return () => {
+				return chars[Math.floor(Math.random() * chars.length)];
+			};
+		};
+	}
+	function getCharFuncs() {
+		const X = [...document.querySelectorAll('.chars input:checked')].map((input) => {
+			return input.parentElement.textContent;
+		});
+		if (X.length <= 0) {
+			X.push(ERROR_STR);
+		}
+		const funcs = {
+			X: () => {
+				return X[Math.floor(Math.random() * X.length)];
+			},
+		};
+		document.querySelectorAll('[data-list]').forEach((parent) => {
+			const type = parent.dataset.list;
+			const chars = [...parent.querySelectorAll('input:checked')].map((input) => {
+				return input.parentElement.textContent;
+			});
+			if (chars.length <= 0) {
+				chars.push(ERROR_STR);
+			}
+			funcs[type] = () => {
+				return chars[Math.floor(Math.random() * chars.length)];
+			};
+		});
+
+		return funcs;
+	};
+
+	((buttons) => {
+		buttons.forEach((button) => {
+			button.addEventListener('click', () => {
+				buttons.forEach((button) => {
+					button.classList.remove('selected');
+				});
+				button.classList.add('selected');
+				document.body.dataset.type = button.dataset.type;
+			});
+		});
+	})(document.querySelectorAll('.tab > button'));
+
+	const generateSize = ((input) => {
+		return (getChar) => {
+			const size = parseInt(input.value)
+			const result = [];
+			for (let i = 0; i < size; ++i) {
+				result.push(getChar());
+			}
+			return result.join('');
+		};
+	})(document.getElementById('size'));
+
+	const generatePattern = ((input) => {
+		return (getChars) => {
+			console.log(getChars);
+			const pattern = input.value;
+			const result = [];
+			for (let i = 0; i < pattern.length; ++i) {
+				const type = pattern[i];
+				const getChar = getChars[type];
+				if (getChar) {
+					result.push(getChar());
+				} else {
+					result.push(type);
+				}
+			}
+			return result.join('');
+		};
+	})(document.getElementById('pattern'));
+
+	function generate() {
+		const getChar = getCharFunc();
+		if (document.body.dataset.type === 'pattern') {
+			return generatePattern(getCharFuncs());
+		}
+		return generateSize(getChar());
+	}
+
+	document.getElementById('generate').addEventListener('click', () => {
+		set(generate());
+	});
+
+	document.querySelectorAll('[data-chars]').forEach((parent) => {
+		parent.addEventListener('change', () => {
+			const group = parent.dataset.chars;
+			document.querySelectorAll(`[data-group="${group}"] input`).forEach((input) => {
+				input.checked = parent.checked;
+			});
+		});
+	});
+});
+	</script>
+</head>
+<body data-type="size">
+	<h1>Random string generator</h1>
+	<div class="tab">
+		<button data-type="size" class="selected"></button>
+		<button data-type="pattern"></button>
+	</div>
+	<div class="parameter">
+		<input id="size" type="number" step="1" min="1" value="16">
+		<input id="pattern" type="text" placeholder="XXX-XXXXXX" value="XXX-XXXXXX">
+		<button id="generate"></button>
+	</div>
+	<textarea id="output"></textarea>
+	<h2>Characters</h2>
+	<h3><label><input type="checkbox" data-chars="numbers" checked>Numbers [N]</label></h3>
+	<div class="chars" data-group="numbers" data-list="N">
+		<label translate="no"><input type="checkbox" checked>0</label>
+		<label translate="no"><input type="checkbox" checked>1</label>
+		<label translate="no"><input type="checkbox" checked>2</label>
+		<label translate="no"><input type="checkbox" checked>3</label>
+		<label translate="no"><input type="checkbox" checked>4</label>
+		<label translate="no"><input type="checkbox" checked>5</label>
+		<label translate="no"><input type="checkbox" checked>6</label>
+		<label translate="no"><input type="checkbox" checked>7</label>
+		<label translate="no"><input type="checkbox" checked>8</label>
+		<label translate="no"><input type="checkbox" checked>9</label>
+	</div>
+	<h3><label><input type="checkbox" data-chars="lowers" checked>Lowercase alphabet [a]</label></h3>
+	<div class="chars" data-group="lowers" data-list="a">
+		<label translate="no"><input type="checkbox" checked>a</label>
+		<label translate="no"><input type="checkbox" checked>b</label>
+		<label translate="no"><input type="checkbox" checked>c</label>
+		<label translate="no"><input type="checkbox" checked>d</label>
+		<label translate="no"><input type="checkbox" checked>e</label>
+		<label translate="no"><input type="checkbox" checked>f</label>
+		<label translate="no"><input type="checkbox" checked>g</label>
+		<label translate="no"><input type="checkbox" checked>h</label>
+		<label translate="no"><input type="checkbox" checked>i</label>
+		<label translate="no"><input type="checkbox" checked>j</label>
+		<label translate="no"><input type="checkbox" checked>k</label>
+		<label translate="no"><input type="checkbox" checked>l</label>
+		<label translate="no"><input type="checkbox" checked>m</label>
+		<label translate="no"><input type="checkbox" checked>n</label>
+		<label translate="no"><input type="checkbox" checked>o</label>
+		<label translate="no"><input type="checkbox" checked>p</label>
+		<label translate="no"><input type="checkbox" checked>q</label>
+		<label translate="no"><input type="checkbox" checked>r</label>
+		<label translate="no"><input type="checkbox" checked>s</label>
+		<label translate="no"><input type="checkbox" checked>t</label>
+		<label translate="no"><input type="checkbox" checked>u</label>
+		<label translate="no"><input type="checkbox" checked>v</label>
+		<label translate="no"><input type="checkbox" checked>w</label>
+		<label translate="no"><input type="checkbox" checked>x</label>
+		<label translate="no"><input type="checkbox" checked>y</label>
+		<label translate="no"><input type="checkbox" checked>z</label>
+	</div>
+	<h3><label><input type="checkbox" data-chars="uppers" checked>Uppercase alphabet [A]</label></h3>
+	<div class="chars" data-group="uppers" data-list="A">
+		<label translate="no"><input type="checkbox" checked>A</label>
+		<label translate="no"><input type="checkbox" checked>B</label>
+		<label translate="no"><input type="checkbox" checked>C</label>
+		<label translate="no"><input type="checkbox" checked>D</label>
+		<label translate="no"><input type="checkbox" checked>E</label>
+		<label translate="no"><input type="checkbox" checked>F</label>
+		<label translate="no"><input type="checkbox" checked>G</label>
+		<label translate="no"><input type="checkbox" checked>H</label>
+		<label translate="no"><input type="checkbox" checked>I</label>
+		<label translate="no"><input type="checkbox" checked>J</label>
+		<label translate="no"><input type="checkbox" checked>K</label>
+		<label translate="no"><input type="checkbox" checked>L</label>
+		<label translate="no"><input type="checkbox" checked>M</label>
+		<label translate="no"><input type="checkbox" checked>N</label>
+		<label translate="no"><input type="checkbox" checked>O</label>
+		<label translate="no"><input type="checkbox" checked>P</label>
+		<label translate="no"><input type="checkbox" checked>Q</label>
+		<label translate="no"><input type="checkbox" checked>R</label>
+		<label translate="no"><input type="checkbox" checked>S</label>
+		<label translate="no"><input type="checkbox" checked>T</label>
+		<label translate="no"><input type="checkbox" checked>U</label>
+		<label translate="no"><input type="checkbox" checked>V</label>
+		<label translate="no"><input type="checkbox" checked>W</label>
+		<label translate="no"><input type="checkbox" checked>X</label>
+		<label translate="no"><input type="checkbox" checked>Y</label>
+		<label translate="no"><input type="checkbox" checked>Z</label>
+	</div>
+	<h3><label><input type="checkbox" data-chars="urlsafe" checked>URL-safe symbols [U]</label></h3>
+	<div class="chars" data-group="urlsafe" data-list="U">
+		<label translate="no"><input type="checkbox" checked>-</label>
+		<label translate="no"><input type="checkbox" checked>_</label>
+		<label translate="no"><input type="checkbox" checked>.</label>
+		<label translate="no"><input type="checkbox" checked>!</label>
+		<label translate="no"><input type="checkbox" checked>(</label>
+		<label translate="no"><input type="checkbox" checked>)</label>
+		<label translate="no"><input type="checkbox">'</label>
+	</div>
+	<h3><label><input type="checkbox" data-chars="symbols">Symbols [S]</label></h3>
+	<div class="chars" data-group="symbols" data-list="S">
+		<label translate="no"><input type="checkbox">&amp;</label>
+		<label translate="no"><input type="checkbox">&lt;</label>
+		<label translate="no"><input type="checkbox">&gt;</label>
+		<label translate="no"><input type="checkbox">#</label>
+		<label translate="no"><input type="checkbox">&quot;</label>
+		<label translate="no"><input type="checkbox">%</label>
+		<label translate="no"><input type="checkbox">{</label>
+		<label translate="no"><input type="checkbox">}</label>
+		<label translate="no"><input type="checkbox">|</label>
+		<label translate="no"><input type="checkbox">\</label>
+		<label translate="no"><input type="checkbox">^</label>
+		<label translate="no"><input type="checkbox">[</label>
+		<label translate="no"><input type="checkbox">]</label>
+		<label translate="no"><input type="checkbox">`</label>
+		<label translate="no"><input type="checkbox">/</label>
+		<label translate="no"><input type="checkbox">+</label>
+		<label translate="no"><input type="checkbox">-</label>
+		<label translate="no"><input type="checkbox">*</label>
+		<label translate="no"><input type="checkbox">@</label>
+	</div>
+	<div id="github">
+		<a href="https://github.com/LapisTech/random" style="text-decoration:none">GitHub</a>
+	</div>
+</body>
+</html>

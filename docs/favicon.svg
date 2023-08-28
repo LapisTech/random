@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.1" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+ <rect width="80" height="80" fill="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="10" style="paint-order:markers fill stroke"/>
+ <path d="m20 5v70h15v-25h5v20h5v5h15v-15h-5v-15h5v-40zm15 15h10v15h-10z" style="paint-order:markers fill stroke"/>
+ <path d="m50 5v5h5v-5zm5 5v5h5v-5zm0 25v5h5v-5zm-25 10v5h5v-5zm10 10v5h5v-5zm15 15v5h5v-5z" fill="#333" style="paint-order:markers fill stroke"/>
+ <path d="m30 15v20h5v-15h10v-5zm25 25v5h5v-5zm0 5h-5v10h5zm-20 0v5h5v-5zm0 5h-5v25h5z" fill="#666" style="paint-order:markers fill stroke"/>
+ <path d="m40 60v5h5v-5zm15 5v5h5v-5z" fill="#999" style="paint-order:markers fill stroke"/>
+ <path d="m55 5v5h5v-5zm0 55v5h5v-5zm-15 5v5h5v-5z" fill="#b3b3b3" style="paint-order:markers fill stroke"/>
+</svg>
